@@ -15,22 +15,32 @@ session = requests.Session()
 upload = vk_api.VkUpload(vk_session)
 attachments = []
 
+def DeleteAllAttachments(attachments):
+    while attachments:
+            attachments.pop()
+
+def SomeToOneAttachment(attachments):
+    while len(attachments) > 1:      # Иногда может попасться баг, когда 2 одинаковых вложения
+        attachments.pop()            # Не знаю, почему так происходит, но баг исправлен этим циклом
+
 def IdentificationAttachment(attachment):               # Определение вложения по номеру
-    if attachment == 1:                                               # Поклон
+    if attachment == 1:                                                     # Поклон
+        DeleteAllAttachments(attachments)
         photo = upload.photo_messages(photos='pictures/Greeting.jpg')[0]
         attachments.append(
             'photo{}_{}'.format(photo['owner_id'], photo['id']))
+        SomeToOneAttachment(attachments)
 
-    elif attachment == 2:                                               # Проверка
+    elif attachment == 2:                                                   # Проверка
+        DeleteAllAttachments(attachments)                                           
         photo = upload.photo_messages(photos='pictures/Excellent.jpg')[0]
         attachments.append(
             'photo{}_{}'.format(photo['owner_id'], photo['id']))
+        SomeToOneAttachment(attachments)
 
     else:
-        pass
-
-    while len(attachments) > 1:     # Иногда может попасться баг, когда 2 одинаковых вложения
-        attachment.pop()            # Не знаю, почему так происходит, но баг исправлен этим циклом
+        DeleteAllAttachments(attachments)
+   
     # TODO: при успешном прикладывании возвращать 0, иначе возвращать код ошибки и писать это в чат
 
 def Send_Message(chat_id, attachment, message):         # Функция для отправки сообщений
@@ -46,12 +56,12 @@ def main():
     print("Bot is working")
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
-            if event.obj.text.lower() == "бот":
+            if event.obj.text.lower() == "проверка":
                 if event.from_chat:
                     Send_Message(
                         chat_id=event.chat_id,
                         attachment = 0,
-                        message = "Приветствую.")
+                        message = ("Вложений - " + str(len(attachments))))
 
             elif event.obj.text == "👉🏻" or event.obj.text == "👉":
                 if event.from_chat:
